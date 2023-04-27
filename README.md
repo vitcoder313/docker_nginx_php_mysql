@@ -14,12 +14,12 @@ This project use the following ports :
 ## Installation
 1. Clone the project
 ```sh
-git clone https://github.com/nanoninja/docker-nginx-php-mysql.git
+git clone https://github.com/vit-cmd/docker_nginx_php_mysql
 ```
 
 2. Go to the project directory:
 ```sh
-cd ...
+cd docker_nginx_php_mysql
 ```
 
 3. Build `docker-compose.yml`:
