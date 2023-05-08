@@ -32,20 +32,10 @@ docker-compose build
 docker-compose up
 ```
 This creates two new folders:
-- `src`: the location of your php application files
+- `.`: the location of your php application files
 - `./docker/dbdata`: used to store and restore database dumps and initial databse for import
 
 5. Stop and clear services:
 ```sh
 docker-compose down -v
-```
-## Error Permission
-If `src` folder can not create file or folder in this, please do the following:
-- Change mode
-```sh
-sudo chmod 777 src
-```
-- Change owner
-```sh
-sudo chown $USER:$USER src
 ```

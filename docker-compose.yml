@@ -9,7 +9,7 @@ services:
     ports:
       - '80:80'
     volumes:
-      - ./src:/var/www
+      - .:/var/www
       - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
     depends_on:
       - app
@@ -24,7 +24,7 @@ services:
       dockerfile: app.dockerfile
     container_name: 'php_basic_app'
     volumes:
-     - ./src:/var/www
+     - .:/var/www
      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
     networks:
       - app-network
