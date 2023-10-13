@@ -4,40 +4,51 @@ services:
 
   #Nginx Server
   server:
-    container_name: 'php_basic_server'
+    container_name: 'nginx_server'
     image: 'nginx:alpine'
     ports:
-      - '80:80'
+      - '8000:80'
+    restart: unless-stopped
     volumes:
       - .:/var/www
       - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
-    depends_on:
-      - app
-      # - mysql
     networks:
       - app-network
   
   #PHP Service
-  app:
+  backend:
     build:
       context: ./docker
-      dockerfile: app.dockerfile
-    container_name: 'php_basic_app'
+      dockerfile: backend.dockerfile
+    container_name: 'backend-test'
+    restart: unless-stopped
     volumes:
-     - .:/var/www
+     - ./backend:.
      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
     networks:
       - app-network
   
+  # frontend:
+  #   build:
+  #     context: ./docker
+  #     dockerfile: frontend.dockerfile
+  #   container_name: 'frontend'
+  #   restart: unless-stopped
+  #   volumes:
+  #    - ./frontend:.
+  #    - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+  #   networks:
+  #     - app-network
+
   #MySQL Service
   mysql:
-    image: mysql:8.0.32
-    container_name: php_basic_db
-    # restart: unless-stopped
+    image: mysql:8.0
+    container_name: test_db
+    restart: unless-stopped
     ports:
-      - "3306:3306"
+      - "3309:3306"
     volumes:
-      - ./docker/dbdata:/var/lib/mysql
+      # - ./docker/data:/var/lib/mysql
       - ./docker/mysql/my.cnf:/etc/mysql/my.cnf
     environment:
       - MYSQL_ROOT_PASSWORD=123456
