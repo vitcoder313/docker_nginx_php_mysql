@@ -1,26 +1,129 @@
 # Use the latest 2.1 version of CircleCI pipeline process engine.
 # See: https://circleci.com/docs/configuration-reference
 version: 2.1
-
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/configuration-reference/#jobs
 jobs:
-  say-hello:
+  # test:
+  #   docker:
+  #     - image: cimg/base:stable
+  
+  test-be:
     # Specify the execution environment. You can specify an image from Docker Hub or use one of our convenience images from CircleCI's Developer Hub.
     # See: https://circleci.com/docs/configuration-reference/#executor-job
     docker:
+      - image: cimg/php:8.2.11
+      - image: circleci/mysql:8.0
+        command: [--default-authentication-plugin=mysql_native_password]
+        environment:
+          MYSQL_ROOT_PASSWORD: rootPass
+          MYSQL_USER: user # need to be same with "DB_USERNAME" of .env
+          MYSQL_PASSWORD: password # need to be same with "DB_PASSWORD" of .env
+          MYSQL_DATABASE: test_laravel # need to be same with "DB_DATABASE" of .env
+    working_directory: ~/project/backend
+    steps:
+      - checkout:
+          path: ~/project
+      - run:
+          name: "Create environment testing file"
+          command: cp .env.testing .env
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+            # "composer.lock" can be used if it is committed to the repo
+            - v1-dependencies-{{ checksum "composer.json" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
+      - run:
+          name: "Install Dependencies"
+          command: composer install -n --prefer-dist
+      - save_cache:
+          key: v1-dependencies-{{ checksum "composer.json" }}
+          paths:
+            - ./vendor
+      # # prepare the database
+      - run:
+          name: "Generate App key"
+          command: php artisan key:generate
+      - run:
+          name: Wait for DB
+          command: dockerize -wait tcp://localhost:3306 -timeout 1m
+      - run:
+          name: "Create database and run migration"
+          command: php artisan migrate
+      # - run:
+      #     name: "Generate Passport encryption keys"
+      #     command: php artisan passport:install
+      # # run tests with phpunit
+      # - run:
+      #     name: "Run Tests"
+      #     command: php artisan test
+  test-fe:
+    build-and-test:
+    working_directory: ~/project/frontend
+    docker:
+      - image: cimg/node:18.17.0
+    steps:
+      - checkout:
+          path: ~/project
+      - run:
+          name: Update NPM
+          command: "sudo npm install -g npm"
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package-lock.json" }}
+      - run:
+          name: Install Dependencies
+          command: npm install --legacy-peer-deps
+      - save_cache:
+          key: dependency-cache-{{ checksum "package-lock.json" }}
+          paths:
+            - ./node_modules
+      - run:
+          name: Test build
+          command: npm run build
+      # - run:
+      #     name: Run test for the application
+      #     command: npm run test:unit
+
+  build:
+    docker:
       - image: cimg/base:stable
-    # Add steps to the job
-    # See: https://circleci.com/docs/configuration-reference/#steps
+
     steps:
       - checkout
+
       - run:
-          name: "Say hello"
-          command: "echo Hello, World!"
+          name: Install Docker Compose
+          command: |
+            set -x
+            curl -L https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64 -o ~/docker-compose
+            chmod +x ~/docker-compose
+            sudo mv ~/docker-compose /usr/local/bin/docker-compose
+      - setup_remote_docker
+
+      - run:
+          name: Build images of services declared in docker-compose.yml
+          command: docker-compose build && docker ps
+
+      - run:
+          name: Start images of services declared in docker-compose.yml
+          command: docker-compose up -d
+
+  # deploy:
 
 # Orchestrate jobs using workflows
 # See: https://circleci.com/docs/configuration-reference/#workflows
 workflows:
-  say-hello-workflow:
+  pipeline:
     jobs:
-      - say-hello
+      - test-be
+      - test-fe
+      - build:
+          requires:
+            - test-be
+            - test-fe
+          filters:
+            branches:
+              only:
+                - develop
+                - main

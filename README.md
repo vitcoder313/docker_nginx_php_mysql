@@ -4,6 +4,7 @@
 - [Nginx](https://hub.docker.com/_/nginx)
 - [PHP:8.1-FPM](https://hub.docker.com/_/php/tags?page=1&name=fpm)
 - [MySQL 8.0](https://hub.docker.com/_/mysql)
+- [Laravel 9](#)
 
 This project use the following ports :
 | Service     | Port |

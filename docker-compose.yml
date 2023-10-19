@@ -18,27 +18,15 @@ services:
   #PHP Service
   backend:
     build:
-      context: ./docker
-      dockerfile: backend.dockerfile
+      context: .
+      dockerfile: docker/backend.dockerfile
     container_name: 'backend-test'
     restart: unless-stopped
     volumes:
-     - ./backend:.
+     - ./backend:/var/www/html
      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
     networks:
       - app-network
-  
-  # frontend:
-  #   build:
-  #     context: ./docker
-  #     dockerfile: frontend.dockerfile
-  #   container_name: 'frontend'
-  #   restart: unless-stopped
-  #   volumes:
-  #    - ./frontend:.
-  #    - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
-  #   networks:
-  #     - app-network
 
   #MySQL Service
   mysql:
