@@ -7,14 +7,16 @@ services:
     container_name: 'nginx_server'
     image: 'nginx:alpine'
     ports:
-      - '8000:80'
+      - '8000:80' # port server
+      - '3333:81' # port front end
     restart: unless-stopped
     volumes:
-      - .:/var/www
+      - ./backend:/var/www/html
+      - ./frontend/dist/:/usr/share/nginx/html
       - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
     networks:
       - app-network
-  
+
   #PHP Service
   backend:
     build:
