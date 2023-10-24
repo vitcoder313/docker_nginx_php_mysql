@@ -85,31 +85,46 @@ jobs:
       #     name: Run test for the application
       #     command: npm run test:unit
 
-  build:
-    docker:
-      - image: cimg/base:stable
+  # build:
+  #   docker:
+  #     - image: cimg/base:stable
 
+  #   steps:
+  #     - checkout
+
+  #     - run:
+  #         name: Install Docker Compose
+  #         command: |
+  #           set -x
+  #           curl -L https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64 -o ~/docker-compose
+  #           chmod +x ~/docker-compose
+  #           sudo mv ~/docker-compose /usr/local/bin/docker-compose
+  #     - setup_remote_docker
+
+  #     - run:
+  #         name: Build images of services declared in docker-compose.yml
+  #         command: docker-compose build && docker ps
+
+  #     - run:
+  #         name: Start images of services declared in docker-compose.yml
+  #         command: docker-compose up -d
+
+  deploy:
+    machine:
+      enabled: true
     steps:
-      - checkout
-
+      - add_ssh_keys:
+          fingerprints:
+            - "26:fc:f6:79:8e:d1:c0:1a:f8:7f:f0:a9:67:b0:f4:0d"
       - run:
-          name: Install Docker Compose
+          name: pull and start service
           command: |
-            set -x
-            curl -L https://github.com/docker/compose/releases/download/1.29.2/docker-compose-Linux-x86_64 -o ~/docker-compose
-            chmod +x ~/docker-compose
-            sudo mv ~/docker-compose /usr/local/bin/docker-compose
-      - setup_remote_docker
+            ssh -oStrictHostKeyChecking=no vit@161.97.148.169 
+            cd projects/laravel_vuejs 
+            git pull
+            cd frontend
+            npm run build
 
-      - run:
-          name: Build images of services declared in docker-compose.yml
-          command: docker-compose build && docker ps
-
-      - run:
-          name: Start images of services declared in docker-compose.yml
-          command: docker-compose up -d
-
-  # deploy:
 
 # Orchestrate jobs using workflows
 # See: https://circleci.com/docs/configuration-reference/#workflows
